@@ -71,6 +71,7 @@ public class ARPlacement : MonoBehaviour
         Destroy(spawnedObject);
         spawnedObject = null;
         
+        
         // int childCount = _parentTransform.childCount;
 
         // for (int i = childCount - 1; i >= 0; i--){
