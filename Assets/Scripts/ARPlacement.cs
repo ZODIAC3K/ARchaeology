@@ -7,9 +7,10 @@ using UnityEngine.XR.ARSubsystems;
 public class ARPlacement : MonoBehaviour
 {
 
+    // public Transform _parentTransform;
     public GameObject arObjectToSpawn;
     public GameObject placementIndicator;
-    private GameObject spawnedObject;
+    private GameObject spawnedObject = null;
     private Pose PlacementPose;
     private ARRaycastManager aRRaycastManager;
     private bool placementPoseIsValid = false;
@@ -61,8 +62,19 @@ public class ARPlacement : MonoBehaviour
 
     void ARPlaceObject()
     {
-        spawnedObject = Instantiate(arObjectToSpawn, PlacementPose.position, PlacementPose.rotation);
+        // arObjectToSpawn.transform.TransformPose(PlacementPose);
+        // spawnedObject = Instantiate(arObjectToSpawn,  _parentTransform, true);
+        spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation);
     }
 
+    public void ResetPlacedObject(){
+        Destroy(spawnedObject);
+        spawnedObject = null;
+        
+        // int childCount = _parentTransform.childCount;
 
+        // for (int i = childCount - 1; i >= 0; i--){
+        //     Destroy(_parentTransform.GetChild(i).gameObject);
+        // }
+    }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 using ZXing;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.Android;
 
 public class QRCoderScanner : MonoBehaviour
 {
@@ -19,16 +20,26 @@ public class QRCoderScanner : MonoBehaviour
     
     private List<string> model_names;
     public GameObject placeButton;
+    public GameObject canvas;
 
     private bool _isCamAvaible;
     private WebCamTexture _cameraTexture;
+    
     void Start()
     {
         model_names = new List<string>();
         getModels();
+
+        Application.RequestUserAuthorization(UserAuthorization.WebCam);
         SetUpCamera();
+
         // Can add a variable to disable the button (lower opacity) in future updates
         placeButton.SetActive(false);
+    }
+
+    private void OnGUI() {
+        canvas.SetActive(true);
+        _rawImageBackground.texture = _cameraTexture;
     }
 
     // Update is called once per frame
@@ -45,16 +56,18 @@ public class QRCoderScanner : MonoBehaviour
             _isCamAvaible = false;
             return;
         }
-        for (int i = 0; i < devices.Length; i++)
-        {
-            if (devices[i].isFrontFacing == false)
-            {
-                _cameraTexture = new WebCamTexture(devices[i].name, (int)_scanZone.rect.width, (int)_scanZone.rect.height);
-                break;
-            }
-        }
+        // for (int i = 0; i < devices.Length; i++)
+        // {   
+        //     if (devices[i].isFrontFacing == false)
+        //     {
+        //         _textOut.text = devices[i].name;
+        //         _cameraTexture = new WebCamTexture(devices[i].name, (int)_scanZone.rect.width, (int)_scanZone.rect.height);
+        //         break;
+        //     }
+        // }
+        _textOut.text = devices[0].name;
+        _cameraTexture = new WebCamTexture(devices[0].name, (int)_scanZone.rect.width, (int)_scanZone.rect.height);
         _cameraTexture.Play();
-        _rawImageBackground.texture = _cameraTexture;
         _isCamAvaible = true;
     }
 
