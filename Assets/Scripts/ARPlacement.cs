@@ -64,7 +64,7 @@ public class ARPlacement : MonoBehaviour
     {
         // arObjectToSpawn.transform.TransformPose(PlacementPose);
         // spawnedObject = Instantiate(arObjectToSpawn,  _parentTransform, true);
-        spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation);
+        spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
     }
 
     public void ResetPlacedObject(){
