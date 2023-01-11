@@ -6,8 +6,7 @@ using UnityEngine.XR.ARSubsystems;
 
 public class ARPlacement : MonoBehaviour
 {
-
-    // public Transform _parentTransform;
+    public GameObject ParentObject;
     public GameObject arObjectToSpawn;
     public GameObject placementIndicator;
     private GameObject spawnedObject = null;
@@ -36,11 +35,16 @@ public class ARPlacement : MonoBehaviour
     }
     void UpdatePlacementIndicator()
     {
-        if(spawnedObject == null && placementPoseIsValid)
+        if(spawnedObject == null && placementPoseIsValid && ParentObject.transform.childCount == 0)
         {
             placementIndicator.SetActive(true);
             placementIndicator.transform.SetPositionAndRotation(PlacementPose.position, PlacementPose.rotation);
+            ParentObject.transform.SetPositionAndRotation(PlacementPose.position, PlacementPose.rotation);
         }
+        // elseif(parentObject.transform.childCount > 1)
+        // {
+        //     placementIndicator.SetActive(false);
+        // }
         else
         {
             placementIndicator.SetActive(false);
@@ -64,18 +68,19 @@ public class ARPlacement : MonoBehaviour
     {
         // arObjectToSpawn.transform.TransformPose(PlacementPose);
         // spawnedObject = Instantiate(arObjectToSpawn,  _parentTransform, true);
-        spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
+        if(ParentObject.transform.childCount == 0)
+        {
+            spawnedObject = Instantiate(arObjectToSpawn, PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
+            // Set the parent of the spawnedObject GameObject to the parent GameObject's Transform
+            spawnedObject.transform.SetParent(ParentObject.transform);
+            // spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
+        }
     }
 
     public void ResetPlacedObject(){
+       if(spawnedObject != null){
         Destroy(spawnedObject);
         spawnedObject = null;
-        
-        
-        // int childCount = _parentTransform.childCount;
-
-        // for (int i = childCount - 1; i >= 0; i--){
-        //     Destroy(_parentTransform.GetChild(i).gameObject);
-        // }
+    }
     }
 }
