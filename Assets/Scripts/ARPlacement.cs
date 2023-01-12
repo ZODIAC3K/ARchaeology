@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using TMPro;
 
 public class ARPlacement : MonoBehaviour
-{
+{   
+    public TextMeshProUGUI model_name;
     public GameObject ParentObject;
     public GameObject arObjectToSpawn;
     public GameObject placementIndicator;
@@ -17,6 +19,7 @@ public class ARPlacement : MonoBehaviour
     void Start()
     {
         aRRaycastManager = FindObjectOfType<ARRaycastManager>();
+        // LoadModel(model_name.text);
     }
 
     // need to update placement indicator, placement pose and spawn 
@@ -78,9 +81,16 @@ public class ARPlacement : MonoBehaviour
     }
 
     public void ResetPlacedObject(){
-       if(spawnedObject != null){
-        Destroy(spawnedObject);
-        spawnedObject = null;
+        if(spawnedObject != null)
+        {
+            Destroy(spawnedObject);
+            spawnedObject = null;
+        }
     }
+
+
+    void LoadModel(string model_name){
+        string path = model_name + ".prefab";
+        arObjectToSpawn = Resources.Load<GameObject>(path);
     }
 }

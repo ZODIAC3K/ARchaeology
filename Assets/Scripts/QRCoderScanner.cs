@@ -117,8 +117,8 @@ public class QRCoderScanner : MonoBehaviour
             model_names.Add(Path.GetFileNameWithoutExtension(path));
         }
     }
-    private void checkModel(string model_name){
-        placeButton.SetActive(model_names.Contains(model_name));
+    private bool checkModel(string model_name){
+        return model_names.Contains(model_name);
     }
 
 }
