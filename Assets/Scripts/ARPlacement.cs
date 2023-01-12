@@ -88,7 +88,7 @@ public class ARPlacement : MonoBehaviour
         }
     }
 
-
+    // loading prefab from a path
     void LoadModel(string model_name){
         string path = model_name + ".prefab";
         arObjectToSpawn = Resources.Load<GameObject>(path);
