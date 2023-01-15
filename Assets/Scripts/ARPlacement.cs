@@ -9,22 +9,27 @@ public class ARPlacement : MonoBehaviour
 {   
     public TextMeshProUGUI model_name;
     public GameObject ParentObject;
-    public GameObject arObjectToSpawn;
+    // public GameObject arObjectToSpawn;
     public GameObject placementIndicator;
     private GameObject spawnedObject = null;
     private Pose PlacementPose;
     private ARRaycastManager aRRaycastManager;
     private bool placementPoseIsValid = false;
+    public QRScanner qrscannerScript;
+    public GameObject QRScannerValue = null;
+
 
     void Start()
     {
         aRRaycastManager = FindObjectOfType<ARRaycastManager>();
-        // LoadModel(model_name.text);
+        
+        // arObjectToSpawn = QRScannerValue as GameObject; // Converting Object into GameObject.
     }
 
     // need to update placement indicator, placement pose and spawn 
     void Update()
     {
+        QRScannerValue = qrscannerScript.Scanned_QR_Value_Model as GameObject;
         if(spawnedObject == null && placementPoseIsValid && Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
             ARPlaceObject();
@@ -73,7 +78,7 @@ public class ARPlacement : MonoBehaviour
         // spawnedObject = Instantiate(arObjectToSpawn,  _parentTransform, true);
         if(ParentObject.transform.childCount == 0)
         {
-            spawnedObject = Instantiate(arObjectToSpawn, PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
+            spawnedObject = Instantiate(QRScannerValue, PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
             // Set the parent of the spawnedObject GameObject to the parent GameObject's Transform
             spawnedObject.transform.SetParent(ParentObject.transform);
             // spawnedObject = Instantiate(arObjectToSpawn,  PlacementPose.position, PlacementPose.rotation * Quaternion.Euler(0, -180, 0));
@@ -87,10 +92,9 @@ public class ARPlacement : MonoBehaviour
             spawnedObject = null;
         }
     }
-
-    // loading prefab from a path
-    void LoadModel(string model_name){
-        string path = model_name + ".prefab";
-        arObjectToSpawn = Resources.Load<GameObject>(path);
-    }
+    // // loading prefab from a path
+    // void LoadModel(string model_name){
+    //     string path = model_name + ".prefab";
+    //     arObjectToSpawn = Resources.Load<GameObject>(path);
+    // }
 }

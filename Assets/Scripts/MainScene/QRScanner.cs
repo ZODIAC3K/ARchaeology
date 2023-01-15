@@ -18,18 +18,13 @@ public class QRScanner : MonoBehaviour
     private ARCameraManager _arCamera; // Reference to our camera
     private Texture2D _arCameraTexture; // Camera texture object
     private bool onlyOnce; // Used to check if the barcode is checking the image
-    private List<string> model_names = new List<string>();
-
-    string[] models = {"Old building",};
+    public GetModel getModelScript;
+    public GameObject Scanned_QR_Value_Model = null;
 
     // Start is called before the first frame update
     void Start()
     {
         _placeBtn.SetActive(false);
-        foreach (string name in models)
-        {
-            model_names.Add(name);
-        }
         _arCamera = FindObjectOfType<ARCameraManager>();
         reader = new BarcodeReader();
         reader.Options.TryHarder = true;
@@ -89,34 +84,23 @@ public class QRScanner : MonoBehaviour
             textField.text = "Decoding";
 
             if (result != null && result.Text != ""){
-                if (checkModel(result.Text))
-                {
-                    textField.text = result.Text;
-                    _placeBtn.SetActive(true);
-                }
-                else
-                {
-                    textField.text = "Model Not Found";
+                Object[] models = getModelScript.models;
+                string[] modelNames = getModelScript.modelNames;
+                // Printing all model names.
+                 for (int i = 0; i < modelNames.Length; i++) {
+                    if (modelNames[i] == result.Text){
+                        textField.text = modelNames[i];
+                        _placeBtn.SetActive(true);
+                        Scanned_QR_Value_Model = models[i] as GameObject;
+                    }
                 }
             }
             else 
             {
-                textField.text = "Failed";
+                textField.text = "Model Not Found";
             }
 
             onlyOnce = false;
         }
     }
-
-    private void getModels(){
-        string[] filepaths = Directory.GetFiles(@"Assets/Resources");
-        foreach (string path in filepaths)
-        {
-            model_names.Add(Path.GetFileNameWithoutExtension(path));
-        }
-    }
-    private bool checkModel(string model_name){
-        return model_names.Contains(model_name);
-    }
-
 }
