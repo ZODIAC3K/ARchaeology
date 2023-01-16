@@ -10,16 +10,15 @@ using ZXing;
 public class QRScanner : MonoBehaviour
 {
     // Declaring required variables
-    [SerializeField]
-    private GameObject _placeBtn;
-    [SerializeField]
-    private TextMeshProUGUI textField;
+    [SerializeField] private GameObject _placeBtn;
+    [SerializeField] private TextMeshProUGUI textField;
     private IBarcodeReader reader;
     private ARCameraManager _arCamera; // Reference to our camera
     private Texture2D _arCameraTexture; // Camera texture object
     private bool onlyOnce; // Used to check if the barcode is checking the image
     public GetModel getModelScript;
     public GameObject Scanned_QR_Value_Model = null;
+    // private bool buttonPressed;
 
     // Start is called before the first frame update
     void Start()
@@ -28,9 +27,20 @@ public class QRScanner : MonoBehaviour
         _arCamera = FindObjectOfType<ARCameraManager>();
         reader = new BarcodeReader();
         reader.Options.TryHarder = true;
+
+        // _arCamera.frameReceived += OnCameraFrameRecieved;
+        setMaxConifg();
     }
 
+    // unsafe void OnCameraFrameRecieved(ARCameraFrameEventArgs eventArgs)
+    // {
+    //     if (!buttonPressed) return;
+        
+    //     ScanQR();
+    // }
+
     public void ScanQR(){
+        LogConfig();
         XRCpuImage image;
         if(_arCamera.TryAcquireLatestCpuImage(out image)){
             textField.text = "Scanning...";
@@ -101,6 +111,43 @@ public class QRScanner : MonoBehaviour
             }
 
             onlyOnce = false;
+        }
+    }
+
+    private void LogConfig(){
+        using (var configurations = _arCamera.GetConfigurations(Unity.Collections.Allocator.Temp))
+        {
+            var current = _arCamera.currentConfiguration;
+
+            foreach (var config in configurations)
+            {
+                if (current == config) Debug.Log("Current: ");
+                Debug.Log($"{config.width}x{config.height}{(config.framerate.HasValue ? $" at {config.framerate.Value} Hz" : "")}{(config.depthSensorSupported == Supported.Supported ? " depth sensor" : "")}");
+            }
+        }
+    }
+
+    private void setMaxConifg()
+    {
+        using (var configurations = _arCamera.GetConfigurations(Unity.Collections.Allocator.Temp))
+        {
+            if (configurations.Length <= 0 || !configurations.IsCreated) return;
+
+            int maxWidth = 0, maxWidthIndex = 0;
+            for (int i = 0; i < configurations.Length; i++)
+            {
+                if (maxWidth < configurations[i].width)
+                {
+                    maxWidth = configurations[i].width;
+                    maxWidthIndex = i;
+                }
+            }
+
+            _arCamera.currentConfiguration = configurations[maxWidthIndex];
+            var config = configurations[maxWidthIndex];
+            
+            Debug.Log($"{config.width}x{config.height}{(config.framerate.HasValue ? $" at {config.framerate.Value} Hz" : "")}{(config.depthSensorSupported == Supported.Supported ? " depth sensor" : "")}");
+
         }
     }
 }
