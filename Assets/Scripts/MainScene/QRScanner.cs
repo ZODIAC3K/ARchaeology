@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -13,14 +12,13 @@ public class QRScanner : MonoBehaviour
     // Declaring required variables
     [SerializeField] private GameObject _placeBtn;
     [SerializeField] private TextMeshProUGUI textField;
-    [SerializeField] private RectTransform _scanZone;
-    [SerializeField] private Canvas canvas;
     private IBarcodeReader reader;
     private ARCameraManager _arCamera; // Reference to our camera
     private Texture2D _arCameraTexture; // Camera texture object
-    private bool onlyOnce = false; // Used to check if the barcode is checking the image
+    private bool onlyOnce; // Used to check if the barcode is checking the image
     public GetModel getModelScript;
     public GameObject Scanned_QR_Value_Model = null;
+    // private bool buttonPressed;
 
     // Start is called before the first frame update
     void Start()
@@ -29,21 +27,20 @@ public class QRScanner : MonoBehaviour
         _arCamera = FindObjectOfType<ARCameraManager>();
         reader = new BarcodeReader();
         reader.Options.TryHarder = true;
-        _arCamera.frameReceived += OnCameraFrameRecieved;
+
+        // _arCamera.frameReceived += OnCameraFrameRecieved;
+        setMaxConifg();
     }
 
-    void OnCameraFrameRecieved(ARCameraFrameEventArgs eventArgs)
-    {
-        var maxConfig = getMaxConifg();
-        var currentConfig = _arCamera.currentConfiguration.Value;
-
-        if (currentConfig.width != maxConfig.width)
-        {
-            _arCamera.currentConfiguration = maxConfig;
-        }
-    }
+    // unsafe void OnCameraFrameRecieved(ARCameraFrameEventArgs eventArgs)
+    // {
+    //     if (!buttonPressed) return;
+        
+    //     ScanQR();
+    // }
 
     public void ScanQR(){
+        LogConfig();
         XRCpuImage image;
         if(_arCamera.TryAcquireLatestCpuImage(out image)){
             textField.text = "Scanning...";
@@ -55,9 +52,8 @@ public class QRScanner : MonoBehaviour
     IEnumerator ProcessQRCode(XRCpuImage image){
         var request = image.ConvertAsync(new XRCpuImage.ConversionParams{
             inputRect = new RectInt(0, 0, image.width, image.height),
-            outputDimensions = new Vector2Int(image.width, image.height),
+            outputDimensions = new Vector2Int(image.width / 2, image.height / 2),
             outputFormat = TextureFormat.RGB24,
-            transformation = XRCpuImage.Transformation.MirrorY
         });
 
         while(!request.status.IsDone())
@@ -86,18 +82,16 @@ public class QRScanner : MonoBehaviour
         _arCameraTexture.LoadRawTextureData(rawData);
         _arCameraTexture.Apply();
 
-        Texture2D croppedTexture = cropTexture(_arCameraTexture);
+        byte[] barcodeBitmap = _arCameraTexture.GetRawTextureData();
 
-        byte[] barcodeBitmap = croppedTexture.GetRawTextureData();
-
-        LuminanceSource source = new RGBLuminanceSource(barcodeBitmap, croppedTexture.width, croppedTexture.height);
+        LuminanceSource source = new RGBLuminanceSource(barcodeBitmap, _arCameraTexture.width, _arCameraTexture.height);
 
         if(!onlyOnce){
             onlyOnce = true;
             
             Result result = reader.Decode(source);
 
-            textField.text = "Decoding...";
+            textField.text = "Decoding";
 
             if (result != null && result.Text != ""){
                 Object[] models = getModelScript.models;
@@ -120,25 +114,6 @@ public class QRScanner : MonoBehaviour
         }
     }
 
-    private Texture2D cropTexture(Texture2D originalTexture)
-    {   
-        Vector2 centerPos = new Vector2(originalTexture.width / 2, originalTexture.height / 2);
-        var scanPos = RectTransformUtility.PixelAdjustRect(_scanZone, canvas);
-
-        Texture2D croppedTexture = new Texture2D((int) scanPos.width / 2, (int) scanPos.height / 2);
-        
-        croppedTexture.SetPixels(originalTexture.GetPixels(
-            (int) (scanPos.x / 2 + centerPos.x + 280),
-            (int) (scanPos.y / 2 + centerPos.y + 20),
-            (int) scanPos.width / 2,
-            (int) scanPos.height / 2
-        ));
-
-        croppedTexture.Apply();
-
-        return croppedTexture;
-    }
-
     private void LogConfig(){
         using (var configurations = _arCamera.GetConfigurations(Unity.Collections.Allocator.Temp))
         {
@@ -152,11 +127,11 @@ public class QRScanner : MonoBehaviour
         }
     }
 
-    private XRCameraConfiguration getMaxConifg()
+    private void setMaxConifg()
     {
         using (var configurations = _arCamera.GetConfigurations(Unity.Collections.Allocator.Temp))
         {
-            if (configurations.Length <= 0 || !configurations.IsCreated) return new XRCameraConfiguration();
+            if (configurations.Length <= 0 || !configurations.IsCreated) return;
 
             int maxWidth = 0, maxWidthIndex = 0;
             for (int i = 0; i < configurations.Length; i++)
@@ -167,9 +142,12 @@ public class QRScanner : MonoBehaviour
                     maxWidthIndex = i;
                 }
             }
+
+            _arCamera.currentConfiguration = configurations[maxWidthIndex];
             var config = configurations[maxWidthIndex];
             
-            return config;
+            Debug.Log($"{config.width}x{config.height}{(config.framerate.HasValue ? $" at {config.framerate.Value} Hz" : "")}{(config.depthSensorSupported == Supported.Supported ? " depth sensor" : "")}");
+
         }
     }
 }
